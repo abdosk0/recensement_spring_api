@@ -1,12 +1,9 @@
-import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
-import 'package:path/path.dart';
-import 'package:sqflite/sqflite.dart';
-
+import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:recensement_app_spring/widgets/customAppbar.dart';
+import '../helpers/api_service.dart';
 import '../models/menage.dart';
-import '../widgets/customAppbar.dart';
-import 'menage_details_page.dart';
-import 'menage_update_form.dart';
+import 'famille_list_page.dart';
 
 class MenageListPage extends StatefulWidget {
   @override
@@ -14,22 +11,24 @@ class MenageListPage extends StatefulWidget {
 }
 
 class _MenageListPageState extends State<MenageListPage> {
-  late List<Map<String, dynamic>> _menages = [];
+  List<Menage> menages = [];
 
   @override
   void initState() {
     super.initState();
-    _loadMenages();
+    _fetchMenages();
   }
 
-  Future<void> _loadMenages() async {
-    final Database database = await openDatabase(
-      join(await getDatabasesPath(), 'recensement_database.db'),
-    );
-    final List<Map<String, dynamic>> menages = await database.query('Menage');
-    setState(() {
-      _menages = menages;
-    });
+  Future<void> _fetchMenages() async {
+    try {
+      List<Menage> fetchedMenages = await ApiService.fetchMenages();
+      setState(() {
+        menages = fetchedMenages;
+      });
+    } catch (e) {
+      // Handle error
+      print('Error fetching menages: $e');
+    }
   }
 
   @override
@@ -40,77 +39,54 @@ class _MenageListPageState extends State<MenageListPage> {
         showBackButton: true,
       ),
       body: ListView.builder(
-        itemCount: _menages.length,
+        itemCount: menages.length,
         itemBuilder: (context, index) {
-          final menage = _menages[index];
-          return GestureDetector(
-            onTap: () {
-              _showOptionsDialog(context, menage);
-            },
+          return Slidable(
+            startActionPane: ActionPane(
+              motion: const ScrollMotion(),
+              children: [
+                SlidableAction(
+                  backgroundColor: Colors.orange,
+                  onPressed: (BuildContext context) {},
+                  icon: Icons.border_color,
+                  label: 'Update',
+                )
+              ],
+            ),
+            endActionPane: ActionPane(
+              motion: const ScrollMotion(),
+              children: [
+                SlidableAction(
+                  backgroundColor: Colors.red,
+                  icon: Icons.delete,
+                  label: 'Delete',
+                  onPressed: (BuildContext context) {},
+                )
+              ],
+            ),
             child: Card(
               color: const Color(0xFFA1F0F2),
-              margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
               child: ListTile(
-                title: Text(menage['nom']),
-                subtitle: Row(
-                  children: [
-                    Text('${menage['nombre_familles']} families'),
-                    const SizedBox(width: 8.0),
-                    const Icon(Icons.family_restroom),
-                  ],
+                leading: const Icon(Icons.home),
+                title: Text(menages[index].nomMenage),
+                subtitle: Text(
+                  '${menages[index].adresseMenage}, ${menages[index].ville}',
                 ),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => FamilleListPage(
+                        menageId: menages[index].id!,
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
           );
         },
       ),
     );
-  }
-
-  void _showOptionsDialog(
-      BuildContext context, Map<String, dynamic> menageData) {
-    Menage menage = Menage(
-      menageId: menageData['id_menage'],
-      nomMenage: menageData['nom'],
-      adresseMenage: menageData['adresse'],
-      quartier: menageData['quartier'],
-      ville: menageData['ville'],
-    );
-
-    AwesomeDialog(
-      context: context,
-      dialogType: DialogType.question,
-      animType: AnimType.bottomSlide,
-      title: 'Options',
-      desc: 'Choose an option',
-      btnCancelText: 'Modifier le Menage',
-      btnOkColor: const Color(0xFF008A90),
-      btnCancelColor: const Color(0xFF008A90),
-      btnCancelOnPress: () async {
-        // Navigate to update form
-        final result = await Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => MenageUpdateForm(menage: menage)),
-        );
-
-        // Check if the result is true 
-        if (result == true) {
-          // Refresh the list here 
-          _loadMenages(); 
-        }
-      },
-      btnOkText: 'Voir les familles',
-      btnOkOnPress: () {
-        // Navigate to details page
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => MenageDetailsPage(
-                    menage: menageData,
-                  )),
-        );
-      },
-    ).show();
   }
 }

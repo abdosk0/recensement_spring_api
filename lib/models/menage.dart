@@ -1,12 +1,12 @@
 class Menage {
-  final int? menageId;
+  final int? id;
   final String nomMenage;
   final String adresseMenage;
   final String quartier;
   final String ville;
 
   Menage({
-    this.menageId,
+    this.id,
     required this.nomMenage,
     required this.adresseMenage,
     required this.quartier,
@@ -15,7 +15,7 @@ class Menage {
 
   Map<String, dynamic> toMap() {
     return {
-      'menageId': menageId,
+      'id': id,
       'nomMenage': nomMenage,
       'adresseMenage': adresseMenage,
       'quartier': quartier,
@@ -25,7 +25,7 @@ class Menage {
 
   factory Menage.fromMap(Map<String, dynamic> map) {
     return Menage(
-      menageId: map['menageId'],
+      id: map['id'],
       nomMenage: map['nomMenage'],
       adresseMenage: map['adresseMenage'],
       quartier: map['quartier'],
@@ -35,17 +35,17 @@ class Menage {
 
   factory Menage.fromJson(Map<String, dynamic> json) {
     return Menage(
-      menageId: json['menageId'],
-      nomMenage: json['nomMenage'],
-      adresseMenage: json['adresseMenage'],
-      quartier: json['quartier'],
-      ville: json['ville'],
+      id: json['id'],
+      nomMenage: json['nomMenage'] ?? '',
+      adresseMenage: json['adresseMenage'] ?? '',
+      quartier: json['quartier'] ?? '',
+      ville: json['ville'] ?? '',
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'menageId': menageId,
+      'id': id,
       'nomMenage': nomMenage,
       'adresseMenage': adresseMenage,
       'quartier': quartier,

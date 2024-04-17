@@ -5,9 +5,11 @@ import '../models/campagne.dart';
 import '../models/chapitre.dart';
 import '../models/famille.dart';
 import '../models/indicateur.dart';
+import '../models/menage.dart';
+import '../models/personne.dart';
+
 class ApiService {
   final String baseUrl = "http://173.249.11.251:8080/recensement-1";
-
 
   Future<Campagne> fetchCampagne(int idQuestionnaire) async {
     final response =
@@ -86,22 +88,54 @@ class ApiService {
     }
   }
 
-  Future<List<Famille>> fetchFamilies() async {
-    try {
-      final response = await http.get(
-          Uri.parse('$baseUrl/famille/all'));
+  static Future<List<Famille>> fetchFamilies() async {
+    final response = await http
+        .get(Uri.parse('http://173.249.11.251:8080/recensement-1/famille/all'));
 
-      if (response.statusCode == 200) {
-        final List<dynamic> familiesJson = jsonDecode(response.body);
-        final List<Famille> fetchedFamilies =
-            familiesJson.map((json) => Famille.fromJson(json)).toList();
-        return fetchedFamilies;
-      } else {
-        throw Exception('Failed to load families');
-      }
-    } catch (e) {
-      throw Exception('Error fetching families: $e');
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+      List<Famille> families =
+          data.map((json) => Famille.fromJson(json)).toList();
+      return families;
+    } else {
+      throw Exception('Error fetching families');
     }
   }
 
+  static Future<List<Menage>> fetchMenages() async {
+    final response = await http
+        .get(Uri.parse('http://173.249.11.251:8080/recensement-1/menage/all'));
+
+    if (response.statusCode == 200) {
+      List<dynamic> jsonList = json.decode(response.body);
+      List<Menage> menages =
+          jsonList.map((json) => Menage.fromJson(json)).toList();
+      return menages;
+    } else {
+      throw Exception('Failed to fetch menages');
+    }
+  }
+
+  static Future<List<Personne>> fetchPersonnes() async {
+    try {
+      final response = await http.get(
+          Uri.parse('http://173.249.11.251:8080/recensement-1/personne/all'));
+
+      if (response.statusCode == 200) {
+        List<dynamic> jsonList = json.decode(response.body);
+        List<Personne> personnes = jsonList
+            .map((json) => Personne.fromJson(json))
+            .whereType<Personne>() // Filter out any null values
+            .toList();
+        return personnes;
+      } else {
+        print('Failed to load personnes - Status Code: ${response.statusCode}');
+        print('Response Body: ${response.body}');
+        throw Exception('Failed to load personnes');
+      }
+    } catch (e) {
+      print('Error fetching personnes: $e');
+      throw Exception('Error fetching personnes: $e');
+    }
+  }
 }

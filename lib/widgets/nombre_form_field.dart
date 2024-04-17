@@ -10,8 +10,8 @@ class NombreFormField extends StatelessWidget {
     Key? key,
     required this.controller,
     required this.labelText,
-    this.onSubmit, required this.isRequired,
-    
+    this.onSubmit,
+    required this.isRequired,
   }) : super(key: key);
 
   @override
@@ -28,7 +28,6 @@ class NombreFormField extends StatelessWidget {
           controller: controller,
           onChanged: onSubmit,
           keyboardType: TextInputType.number,
-          
           decoration: InputDecoration(
             filled: true,
             fillColor: const Color(0xFF008A90),
@@ -41,16 +40,22 @@ class NombreFormField extends StatelessWidget {
               borderSide: const BorderSide(color: Color(0xFF008A90)),
             ),
             labelStyle: const TextStyle(color: Color(0xFFFFFFFF)),
-            contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+            contentPadding:
+                const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
           ),
           style: const TextStyle(color: Color(0xFFFFFFFF)),
-          
         ),
         if (isRequired && controller.text.isEmpty)
           const Text(
             'Ce champ est obligatoire',
-            style: TextStyle(color: Colors.red),
+            style: const TextStyle(color: Colors.red),
           ),
+        if (!isRequired ||
+            !controller
+                .text.isEmpty) // Added condition to hide the error message
+          const SizedBox(
+              height:
+                  0), // Placeholder to occupy space but not display anything
       ],
     );
   }

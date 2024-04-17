@@ -1,22 +1,20 @@
-
-
 import 'menage.dart';
 
 class Famille {
-  int? familleId;
+  int? id;
   final String nomFamille;
   final Menage menage;
   bool completed;
 
   Famille({
-    this.familleId,
+    this.id,
     required this.nomFamille,
     required this.menage,
     this.completed = false,
   });
 
   Famille.withId({
-    required this.familleId,
+    required this.id,
     required this.nomFamille,
     required this.menage,
     this.completed = false,
@@ -24,7 +22,7 @@ class Famille {
 
   Map<String, dynamic> toMap() {
     return {
-      'familleId': familleId,
+      'id': id,
       'nomFamille': nomFamille,
       'menage': menage.toMap(), // Convert Menage to a map
       'completed': completed ? 1 : 0,
@@ -33,7 +31,7 @@ class Famille {
 
   factory Famille.fromMap(Map<String, dynamic> map) {
     return Famille(
-      familleId: map['familleId'],
+      id: map['id'],
       nomFamille: map['nomFamille'],
       menage: Menage.fromMap(map['menage']),
       completed: map['completed'] ??
@@ -43,19 +41,27 @@ class Famille {
 
   factory Famille.fromJson(Map<String, dynamic> json) {
     return Famille(
-      familleId: json['familleId'],
-      nomFamille: json['nomFamille'],
-      menage: Menage.fromJson(json['menage']),
-      completed: json['completed'] ??
-          false, // Assign a default value if completed is null
+      id: json['id'],
+      nomFamille: json['nomFamille'] ?? '',
+      menage: json['menage'] != null
+          ? Menage.fromJson(json['menage'])
+          : Menage(
+              id: null,
+              nomMenage: '',
+              adresseMenage: '',
+              quartier: '',
+              ville: ''),
+      completed: json['completed'] ?? false,
     );
   }
-  void updateFamilleId(int id) {
-    familleId = id;
+
+  void updateFamilleId(int familleId) {
+    id = familleId;
   }
+
   Map<String, dynamic> toJson() {
     return {
-      'familleId': familleId,
+      'id': id,
       'nomFamille': nomFamille,
       'menage': menage.toMap(), // Convert Menage to a map
       'completed': completed ? 1 : 0,

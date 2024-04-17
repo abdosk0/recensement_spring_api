@@ -1,13 +1,14 @@
+import 'package:recensement_app_spring/models/user.dart';
+
 import 'campagne.dart';
 import 'chapitre.dart';
-import 'cree_par.dart';
 
 class Questionnaire {
   final int id;
   final String nom;
   final String? type;
   final String dateCreation;
-  final CreePar creePar;
+  final User creePar;
   final Campagne campagne;
   final List<Chapitre> chapitres;
 
@@ -27,7 +28,7 @@ class Questionnaire {
       nom: json['nom'],
       type: json['type'],
       dateCreation: json['dateCreation'],
-      creePar: CreePar.fromJson(json['creePar']),
+      creePar: User.fromJson(json['creePar']),
       campagne: Campagne.fromJson(json['campagne']),
       chapitres: (json['chapitres'] as List)
           .map((chapitre) => Chapitre.fromJson(chapitre))

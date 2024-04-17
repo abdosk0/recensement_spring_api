@@ -1,8 +1,8 @@
-
 import 'famille.dart';
+import 'menage.dart';
 
 class Personne {
-  final int? personneId;
+  final int? id;
   final String prenom;
   final String nom;
   final String sexe;
@@ -12,7 +12,7 @@ class Personne {
   final Famille famille;
 
   Personne({
-    this.personneId,
+    this.id,
     required this.prenom,
     required this.nom,
     required this.sexe,
@@ -24,7 +24,7 @@ class Personne {
 
   Map<String, dynamic> toMap() {
     return {
-      'personneId': personneId,
+      'id': id,
       'nom': nom,
       'prenom': prenom,
       'sexe': sexe,
@@ -37,7 +37,7 @@ class Personne {
 
   factory Personne.fromMap(Map<String, dynamic> map) {
     return Personne(
-      personneId: map['personneId'],
+      id: map['id'],
       prenom: map['prenom'],
       nom: map['nom'],
       sexe: map['sexe'],
@@ -50,20 +50,34 @@ class Personne {
 
   factory Personne.fromJson(Map<String, dynamic> json) {
     return Personne(
-      personneId: json['personneId'],
-      prenom: json['prenom'],
-      nom: json['nom'],
-      sexe: json['sexe'],
-      dateNaissance: DateTime.parse(json['dateNaissance']),
-      chefFamille: json['chefFamille'],
-      lienParente: json['lienParente'],
-      famille: Famille.fromJson(json['famille']), // Convert JSON to Famille object
+      id: json['id'],
+      prenom: json['prenom'] ?? '',
+      nom: json['nom'] ?? '',
+      sexe: json['sexe'] ?? '',
+      dateNaissance: json['dateNaissance'] != null
+          ? DateTime.parse(json['dateNaissance'])
+          : DateTime.now(),
+      chefFamille: json['chefFamille'] ?? false,
+      lienParente: json['lienParente'] ?? '',
+      famille: json['famille'] != null
+          ? Famille.fromJson(json['famille'] as Map<String, dynamic>)
+          : Famille(
+              id: null,
+              nomFamille: '',
+              menage: Menage(
+                id: null,
+                nomMenage: '',
+                adresseMenage: '',
+                quartier: '',
+                ville: '',
+              ),
+            ),
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'personneId': personneId,
+      'id': id,
       'nom': nom,
       'prenom': prenom,
       'sexe': sexe,

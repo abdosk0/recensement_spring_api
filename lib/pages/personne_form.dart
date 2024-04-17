@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:awesome_dialog/awesome_dialog.dart';
+import 'package:recensement_app_spring/models/personne.dart';
 
 import '../models/famille.dart';
 import '../models/valeur_possible.dart';
@@ -30,12 +31,25 @@ class PersonneForm extends StatefulWidget {
 class _PersonneFormState extends State<PersonneForm> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _prenomController = TextEditingController();
-  final TextEditingController _nomController = TextEditingController();
+  TextEditingController _nomController = TextEditingController();
   final TextEditingController _dateNaissanceController =
       TextEditingController();
   String _selectedLienParente = 'Père';
   String? _sexe;
   bool _isPersonneChef = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _nomController = TextEditingController(
+        text: widget.famille.nomFamille); // Initialize with family name
+    _nomController
+      ..text = widget.famille.nomFamille
+      ..selection = TextSelection.fromPosition(TextPosition(
+          offset: _nomController.text.length)); // Set cursor at the end
+    _nomController.selection = TextSelection.fromPosition(
+        TextPosition(offset: _nomController.text.length));
+  }
 
   String? _validateTextField(String? value, String fieldName) {
     if (value == null || value.isEmpty) {
@@ -203,10 +217,10 @@ class _PersonneFormState extends State<PersonneForm> {
           'chefFamille': _isPersonneChef,
           'lienParente': _selectedLienParente,
           'famille': {
-            'id': family.familleId,
+            'id': family.id,
             'nomFamille': family.nomFamille,
             'menage': {
-              'id': family.menage.menageId,
+              'id': family.menage.id,
               'nomMenage': family.menage.nomMenage,
               'adresseMenage': family.menage.adresseMenage,
               'quartier': family.menage.quartier,
@@ -222,7 +236,17 @@ class _PersonneFormState extends State<PersonneForm> {
         );
 
         if (response.statusCode == 200) {
-          _showSuccessDialog(context);
+          Map<String, dynamic> responseData = jsonDecode(response.body);
+          Personne personne = Personne(
+            id: responseData['id'],
+              prenom: responseData['prenom'],
+              nom: responseData['nom'],
+              sexe: responseData['sexe'],
+              dateNaissance: responseData['dateNaissance'],
+              chefFamille: responseData['chefFamille'],
+              lienParente: responseData['lienParente'],
+              famille: responseData['famille']);
+          _showSuccessDialog(context, personne);
         } else {
           print('Failed to add personne: ${response.statusCode}');
           print('Response body: ${response.body}');
@@ -235,7 +259,7 @@ class _PersonneFormState extends State<PersonneForm> {
     }
   }
 
-  void _showSuccessDialog(BuildContext context) {
+  void _showSuccessDialog(BuildContext context, Personne personne) {
     AwesomeDialog(
       context: context,
       dialogType: DialogType.success,

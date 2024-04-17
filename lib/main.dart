@@ -23,7 +23,7 @@ class MyApp extends StatelessWidget {
         "home": (context) => const HomePage(),
         "menu": (context) => const Menu(),
         "menage": (context) => const MenageForm(),
-        "menageList": (context) => MenageListPage(),
+        "menageList": (context) =>  MenageListPage(),
       },
     );
   }

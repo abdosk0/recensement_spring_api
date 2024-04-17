@@ -12,11 +12,16 @@ import 'text_field_widget.dart';
 class DynamicIndicatorItem extends StatefulWidget {
   final Indicateur indicateur;
   final TextEditingController controller;
+  final dynamic selectedValue;
+  final Function(dynamic)?
+      onValueSelected; // Update callback to accept a list of strings
 
   const DynamicIndicatorItem({
     Key? key,
     required this.indicateur,
     required this.controller,
+    this.onValueSelected,
+    this.selectedValue,
   }) : super(key: key);
 
   @override
@@ -24,6 +29,14 @@ class DynamicIndicatorItem extends StatefulWidget {
 }
 
 class _DynamicIndicatorItemState extends State<DynamicIndicatorItem> {
+  dynamic currentValue; // Store the current value locally
+
+  @override
+  void initState() {
+    super.initState();
+    currentValue = widget.selectedValue; // Initialize with selected value
+  }
+
   @override
   Widget build(BuildContext context) {
     switch (widget.indicateur.type) {
@@ -40,28 +53,45 @@ class _DynamicIndicatorItemState extends State<DynamicIndicatorItem> {
           isRequired: widget.indicateur.obligatoire,
         );
       case 'Dropdown':
-        final firstOption = widget.indicateur.valeursPossibles.isNotEmpty
-            ? widget.indicateur.valeursPossibles.first.nomValeur
-            : null;
         return DropdownFormField(
           label: widget.indicateur.nomIndicateur,
-          selectedOption: firstOption,
-          onChanged: (String? value) {
-            // Handle dropdown value change here
-          },
           valeursPossibles: widget.indicateur.valeursPossibles,
+          selectedOption: currentValue,
+          onChanged: (String? value) {
+            setState(() {
+              currentValue = value;
+              widget.onValueSelected!(value);
+            });
+          },
           isRequired: widget.indicateur.obligatoire,
         );
       case 'Radio':
-        final firstOption = widget.indicateur.valeursPossibles.isNotEmpty
-            ? widget.indicateur.valeursPossibles.first.nomValeur
-            : null;
         return RadioFormField(
           label: widget.indicateur.nomIndicateur,
-          selectedOption: firstOption,
-          onChanged: (String? value) {
-          },
           valeursPossibles: widget.indicateur.valeursPossibles,
+          selectedOption: currentValue,
+          onChanged: (String? value) {
+            setState(() {
+              currentValue = value;
+              widget.onValueSelected!(value);
+            });
+          },
+          isRequired: widget.indicateur.obligatoire,
+        );
+      case 'Multiselection':
+        return MultiSelectionFormField(
+          label: widget.indicateur.nomIndicateur,
+          valeursPossibles: widget.indicateur.valeursPossibles,
+          selectedOptions: widget.selectedValue != null
+              ? widget.selectedValue!
+                  .split(',') // Convert selectedValue to List
+              : [],
+          onChanged: (List<String> value) {
+            setState(() {
+              widget.onValueSelected!(
+                  value.join(',')); // Join list back to string
+            });
+          },
           isRequired: widget.indicateur.obligatoire,
         );
       case 'Date':
@@ -70,21 +100,12 @@ class _DynamicIndicatorItemState extends State<DynamicIndicatorItem> {
           controller: widget.controller,
           isRequired: widget.indicateur.obligatoire,
         );
-      case 'Multiselection':
-        return MultiSelectionFormField(
-          label: widget.indicateur.nomIndicateur,
-          selectedOptions: [], // Provide initial selected options here
-          onChanged: (List<String> value) {
-            // Handle multi-selection value change here
-          },
-          valeursPossibles: widget.indicateur.valeursPossibles,
-          isRequired: widget.indicateur.obligatoire,
-        );
       case 'TextArea':
         return TextAreaFormField(
           label: widget.indicateur.nomIndicateur,
           controller: widget.controller,
-          isRequired: widget.indicateur.obligatoire, // Use the obligatoire field
+          isRequired:
+              widget.indicateur.obligatoire, // Use the obligatoire field
         );
 
       default:

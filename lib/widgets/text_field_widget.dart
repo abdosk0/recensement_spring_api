@@ -15,7 +15,9 @@ class TextFieldWidget extends StatelessWidget {
     required this.labelText,
     this.enabled = true,
     this.keyboardType,
-    this.validator, this.isRequired, this.onSubmit, // Added validator parameter
+    this.validator,
+    this.isRequired,
+    this.onSubmit,
   }) : super(key: key);
 
   @override
@@ -32,7 +34,11 @@ class TextFieldWidget extends StatelessWidget {
           controller: controller,
           enabled: enabled,
           keyboardType: keyboardType,
-          onChanged: onSubmit,
+          onChanged: (value) {
+            if (onSubmit != null) {
+              onSubmit!(value);
+            }
+          },
           decoration: InputDecoration(
             filled: true,
             fillColor: const Color(0xFF008A90),
@@ -47,14 +53,14 @@ class TextFieldWidget extends StatelessWidget {
             labelStyle: const TextStyle(color: Color(0xFFFFFFFF)),
             contentPadding:
                 const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+            errorText: isRequired ?? false
+                ? 'Please enter some text'
+                : null,
           ),
           style: const TextStyle(color: Color(0xFFFFFFFF)),
           validator: (value) {
-        if (isRequired! && (value == null || value.isEmpty)) {
-          return 'Please enter some text';
-        }
-        return null;
-      },
+            return validator != null ? validator!(value) : null;
+          },
         )
       ],
     );
