@@ -89,12 +89,7 @@ class _MenageFormState extends State<MenageForm> {
         if (response.statusCode == 201) {
           // Parsing the response to extract the ID
           Map<String, dynamic> responseData = jsonDecode(response.body);
-          Menage menage = Menage(
-              id: responseData['id'],
-              nomMenage: responseData['nomMenage'],
-              adresseMenage: responseData['adresseMenage'],
-              quartier: responseData['quartier'],
-              ville: responseData['ville']);
+          Menage menage = Menage.fromJson(responseData);
           // Use the menageId as needed, for example, show a success dialog
           _showSuccessDialog(context, responseData, menage);
         } else {

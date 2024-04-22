@@ -1,9 +1,11 @@
 import 'dart:convert';
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:recensement_app_spring/models/famille.dart';
 import 'package:recensement_app_spring/models/personne.dart';
+import 'package:recensement_app_spring/pages/personne_form.dart';
 import '../helpers/api_service.dart';
 import '../helpers/authentification_service.dart';
 import '../models/indicateur.dart';
@@ -12,13 +14,21 @@ import '../widgets/customAppbar.dart';
 import '../widgets/dynamic_indicator.dart';
 import 'package:http/http.dart' as http;
 
+import 'list_famille.dart';
+
 class PersonneIndicatorPage extends StatefulWidget {
   final List<Famille> familles;
   final Personne personne;
+  final int personneNumber;
+  final Famille famille;
 
   const PersonneIndicatorPage({
-    Key? key, required this.familles, required this.personne,
-  }) : super(key: key);
+    super.key,
+    required this.familles,
+    required this.personne,
+    required this.personneNumber,
+    required this.famille,
+  });
 
   @override
   _PersonneIndicatorPageState createState() => _PersonneIndicatorPageState();
@@ -144,7 +154,7 @@ class _PersonneIndicatorPageState extends State<PersonneIndicatorPage> {
         });
 
         // Show success message after all indicators are submitted
-        showSuccessMessage(context, 'Success', 'Data submitted successfully');
+        _showSuccessDialog(context, 'Success', 'Data submitted successfully');
       } else {
         print('Failed to get authentication token.');
       }
@@ -244,6 +254,45 @@ class _PersonneIndicatorPageState extends State<PersonneIndicatorPage> {
         ),
       ),
     );
+  }
+
+  void _showSuccessDialog(BuildContext context, String title, String message) {
+    AwesomeDialog(
+      context: context,
+      dialogType: DialogType.success,
+      animType: AnimType.bottomSlide,
+      title: 'Succès',
+      desc: 'Les personnes ont été ajoutées avec succès.',
+      btnOkText: 'OK',
+      btnOkOnPress: () {
+        if (widget.personneNumber > 1) {
+          // Navigate to the next PersonneForm if more persons remaining
+
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => PersonneForm(
+                famille: widget.famille,
+                personneNumber: widget.personneNumber - 1,
+                families: widget.familles,
+              ),
+            ),
+          );
+        } else {
+          widget.famille.completed = true;
+          // Navigate to ListFamille if all persons added
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ListFamille(
+                families: widget.familles,
+              ),
+            ),
+          );
+        }
+      },
+      dismissOnTouchOutside: false,
+    ).show();
   }
 
   void showSuccessMessage(BuildContext context, String title, String message) {

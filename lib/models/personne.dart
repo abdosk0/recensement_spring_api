@@ -7,7 +7,7 @@ class Personne {
   final String nom;
   final String sexe;
   final DateTime dateNaissance;
-  final bool chefFamille;
+  final String chefFamille; 
   final String lienParente;
   final Famille famille;
 
@@ -29,7 +29,7 @@ class Personne {
       'prenom': prenom,
       'sexe': sexe,
       'dateNaissance': dateNaissance.toIso8601String(),
-      'chefFamille': chefFamille ? 1 : 0,
+      'chefFamille': chefFamille,
       'lienParente': lienParente,
       'famille': famille.toMap(), // Convert Famille object to map
     };
@@ -42,7 +42,7 @@ class Personne {
       nom: map['nom'],
       sexe: map['sexe'],
       dateNaissance: DateTime.parse(map['dateNaissance']),
-      chefFamille: map['chefFamille'] == 1 ? true : false,
+      chefFamille: map['chefFamille'] == 1 ? 'true' : 'false',
       lienParente: map['lienParente'],
       famille: Famille.fromMap(map['famille']), // Convert map to Famille object
     );
@@ -57,7 +57,7 @@ class Personne {
       dateNaissance: json['dateNaissance'] != null
           ? DateTime.parse(json['dateNaissance'])
           : DateTime.now(),
-      chefFamille: json['chefFamille'] ?? false,
+      chefFamille: json['chefFamille'] ?? 'false',
       lienParente: json['lienParente'] ?? '',
       famille: json['famille'] != null
           ? Famille.fromJson(json['famille'] as Map<String, dynamic>)

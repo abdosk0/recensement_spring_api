@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:recensement_app_spring/models/personne.dart';
+import 'package:recensement_app_spring/pages/personne_indicateur_page.dart';
 
 import '../models/famille.dart';
 import '../models/valeur_possible.dart';
@@ -10,7 +11,6 @@ import '../widgets/customAppbar.dart';
 import '../widgets/date_form_field.dart';
 import '../widgets/radio_form_field.dart';
 import '../widgets/text_field_widget.dart';
-import 'list_famille.dart';
 
 class PersonneForm extends StatefulWidget {
   final Famille famille;
@@ -37,6 +37,7 @@ class _PersonneFormState extends State<PersonneForm> {
   String _selectedLienParente = 'Père';
   String? _sexe;
   bool _isPersonneChef = false;
+  String _isPersonneChefString = 'false'; // Default value as string
 
   @override
   void initState() {
@@ -170,9 +171,11 @@ class _PersonneFormState extends State<PersonneForm> {
                       children: [
                         Checkbox(
                           value: _isPersonneChef,
-                          onChanged: (value) {
+                          onChanged: (bool? value) {
                             setState(() {
-                              _isPersonneChef = value!;
+                              _isPersonneChef = value ?? false;
+                              _isPersonneChefString =
+                                  _isPersonneChef.toString();
                             });
                           },
                         ),
@@ -206,56 +209,47 @@ class _PersonneFormState extends State<PersonneForm> {
   }
 
   void _savePersonne(BuildContext context) async {
-    if (_formKey.currentState!.validate()) {
-      try {
-        Famille family = widget.famille;
-        final personneData = {
-          'prenom': _prenomController.text,
-          'nom': _nomController.text,
-          'sexe': _sexe!,
-          'dateNaissance': _dateNaissanceController.text,
-          'chefFamille': _isPersonneChef,
-          'lienParente': _selectedLienParente,
-          'famille': {
-            'id': family.id,
-            'nomFamille': family.nomFamille,
-            'menage': {
-              'id': family.menage.id,
-              'nomMenage': family.menage.nomMenage,
-              'adresseMenage': family.menage.adresseMenage,
-              'quartier': family.menage.quartier,
-              'ville': family.menage.ville,
-            }
-          },
-        };
+    try {
+      Famille family = widget.famille;
+      final personneData = {
+        'prenom': _prenomController.text,
+        'nom': _nomController.text,
+        'sexe': _sexe!,
+        'dateNaissance': _dateNaissanceController.text,
+        'chefFamille': _isPersonneChefString, // Use _isPersonneChefString
+        'lienParente': _selectedLienParente,
+        'famille': {
+          'id': family.id,
+          'nomFamille': family.nomFamille,
+          'menage': {
+            'id': family.menage.id,
+            'nomMenage': family.menage.nomMenage,
+            'adresseMenage': family.menage.adresseMenage,
+            'quartier': family.menage.quartier,
+            'ville': family.menage.ville,
+          }
+        },
+      };
 
-        final response = await http.post(
-          Uri.parse('http://173.249.11.251:8080/recensement-1/personne/add'),
-          body: jsonEncode(personneData),
-          headers: {'Content-Type': 'application/json'},
-        );
+      final response = await http.post(
+        Uri.parse('http://173.249.11.251:8080/recensement-1/personne/add'),
+        body: jsonEncode(personneData),
+        headers: {'Content-Type': 'application/json'},
+      );
+      print(_isPersonneChef);
 
-        if (response.statusCode == 200) {
-          Map<String, dynamic> responseData = jsonDecode(response.body);
-          Personne personne = Personne(
-            id: responseData['id'],
-              prenom: responseData['prenom'],
-              nom: responseData['nom'],
-              sexe: responseData['sexe'],
-              dateNaissance: responseData['dateNaissance'],
-              chefFamille: responseData['chefFamille'],
-              lienParente: responseData['lienParente'],
-              famille: responseData['famille']);
-          _showSuccessDialog(context, personne);
-        } else {
-          print('Failed to add personne: ${response.statusCode}');
-          print('Response body: ${response.body}');
-          _showErrorDialog(context, 'Failed to add personne');
-        }
-      } catch (e) {
-        print('Error saving personne: $e');
-        _showErrorDialog(context, 'Error saving personne');
+      if (response.statusCode == 200) {
+        Map<String, dynamic> responseData = jsonDecode(response.body);
+        Personne personne = Personne.fromJson(responseData);
+        _showSuccessDialog(context, personne);
+      } else {
+        print('Failed to add personne: ${response.statusCode}');
+        print('Response body: ${response.body}');
+        _showErrorDialog(context, 'Failed to add personne');
       }
+    } catch (e) {
+      print('Error saving personne: $e');
+      _showErrorDialog(context, 'Error saving personne');
     }
   }
 
@@ -268,35 +262,17 @@ class _PersonneFormState extends State<PersonneForm> {
       desc: 'Les personnes ont été ajoutées avec succès.',
       btnOkText: 'OK',
       btnOkOnPress: () {
-        // Pop until reaching the PersonneForm route
-        Navigator.popUntil(context, (route) {
-          return route.isFirst || route.settings.name == 'PersonneForm';
-        });
-
-        if (widget.personneNumber > 1) {
-          // Navigate to the next PersonneForm if more persons remaining
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => PersonneForm(
-                famille: widget.famille,
-                personneNumber: widget.personneNumber - 1,
-                families: widget.families,
-              ),
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PersonneIndicatorPage(
+              famille: widget.famille,
+              personneNumber: widget.personneNumber,
+              familles: widget.families,
+              personne: personne,
             ),
-          );
-        } else {
-          widget.famille.completed = true;
-          // Navigate to ListFamille if all persons added
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ListFamille(
-                families: widget.families,
-              ),
-            ),
-          );
-        }
+          ),
+        );
       },
       dismissOnTouchOutside: false,
     ).show();
