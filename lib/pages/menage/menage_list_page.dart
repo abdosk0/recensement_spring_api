@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:recensement_app_spring/widgets/customAppbar.dart';
-import '../helpers/api_service.dart';
-import '../models/menage.dart';
-import 'famille_list_page.dart';
+import '../../helpers/api_service.dart';
+import '../../models/menage.dart';
+import '../famille/famille_list_page.dart';
 
 class MenageListPage extends StatefulWidget {
   @override

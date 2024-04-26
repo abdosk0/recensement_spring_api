@@ -1,42 +1,36 @@
 import 'dart:convert';
-import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
-import 'package:recensement_app_spring/models/famille.dart';
-import 'package:recensement_app_spring/models/personne.dart';
-import 'package:recensement_app_spring/pages/personne_form.dart';
-import '../helpers/api_service.dart';
-import '../helpers/authentification_service.dart';
-import '../models/indicateur.dart';
-import '../models/user.dart';
-import '../widgets/customAppbar.dart';
-import '../widgets/dynamic_indicator.dart';
+import '../../helpers/api_service.dart';
+import '../../helpers/authentification_service.dart';
+import '../../models/indicateur.dart';
+import '../../models/menage.dart';
+import '../../models/user.dart';
+import '../../widgets/customAppbar.dart';
+import '../../widgets/dynamic_indicator.dart';
+import '../famille/famille_form.dart';
 import 'package:http/http.dart' as http;
 
-import 'list_famille.dart';
+class MenageIndicatorPage extends StatefulWidget {
+  final Map<String, dynamic> responseData;
+  final int numberOfFamilies;
+  final Menage menage;
 
-class PersonneIndicatorPage extends StatefulWidget {
-  final List<Famille> familles;
-  final Personne personne;
-  final int personneNumber;
-  final Famille famille;
-
-  const PersonneIndicatorPage({
-    super.key,
-    required this.familles,
-    required this.personne,
-    required this.personneNumber,
-    required this.famille,
-  });
+  const MenageIndicatorPage({
+    Key? key,
+    required this.responseData,
+    required this.numberOfFamilies,
+    required this.menage,
+  }) : super(key: key);
 
   @override
-  _PersonneIndicatorPageState createState() => _PersonneIndicatorPageState();
+  _MenageIndicatorPageState createState() => _MenageIndicatorPageState();
 }
 
-class _PersonneIndicatorPageState extends State<PersonneIndicatorPage> {
+class _MenageIndicatorPageState extends State<MenageIndicatorPage> {
   final ApiService _apiService = ApiService();
-  late List<Indicateur> _perosnneIndicators = [];
+  late List<Indicateur> _menageIndicators = [];
   bool _showLoading = false;
   final AuthenticationService _authService = AuthenticationService();
   final Map<String, TextEditingController> controllersMap = {};
@@ -45,7 +39,7 @@ class _PersonneIndicatorPageState extends State<PersonneIndicatorPage> {
   @override
   void initState() {
     super.initState();
-    _fetchPersonneIndicators();
+    _fetchMenageIndicators();
   }
 
   @override
@@ -56,23 +50,23 @@ class _PersonneIndicatorPageState extends State<PersonneIndicatorPage> {
     super.dispose();
   }
 
-  Future<void> _fetchPersonneIndicators() async {
+  Future<void> _fetchMenageIndicators() async {
     try {
       await Future.delayed(const Duration(seconds: 2));
       final List<Indicateur> indicators = await _apiService.fetchIndicateurs(1);
       setState(() {
-        _perosnneIndicators = indicators
-            .where((indicateur) => indicateur.objectIndicateur == 'Personne')
+        _menageIndicators = indicators
+            .where((indicateur) => indicateur.objectIndicateur == 'Ménage')
             .toList();
 
         // Initialize controllers after fetching indicators
-        for (var indicateur in _perosnneIndicators) {
+        for (var indicateur in _menageIndicators) {
           controllersMap[indicateur.id.toString()] = TextEditingController();
           selectedValuesMap[indicateur.id] = null;
         }
       });
     } catch (e) {
-      print('Error fetching Personne indicators: $e');
+      print('Error fetching Menage indicators: $e');
     }
   }
 
@@ -85,7 +79,7 @@ class _PersonneIndicatorPageState extends State<PersonneIndicatorPage> {
       if (authToken.isNotEmpty) {
         final User? currentUser = await _authService.fetchCurrentUser();
 
-        for (final indicateur in _perosnneIndicators) {
+        for (final indicateur in _menageIndicators) {
           final controller = controllersMap[indicateur.id.toString()];
           bool? requireSousIndicateur;
           int? selectedId = 0;
@@ -126,11 +120,11 @@ class _PersonneIndicatorPageState extends State<PersonneIndicatorPage> {
               'date': DateTime.now().toIso8601String(),
               'remarques': null,
               'enregistrePar': currentUser?.toJson(),
-              'personne': widget.personne.toMap(),
+              'personne': null,
               'indicateur': indicateur.toJson(),
               'sousIndicateur': null,
               'resultatValeur': resultatValeur,
-              'menage': null,
+              'menage': widget.menage.toMap(),
             };
 
             final response = await http.post(
@@ -154,7 +148,16 @@ class _PersonneIndicatorPageState extends State<PersonneIndicatorPage> {
         });
 
         // Show success message after all indicators are submitted
-        _showSuccessDialog(context, 'Success', 'Data submitted successfully');
+        showSuccessMessage(context, 'Success', 'Data submitted successfully');
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => FamilleForm(
+              responseData: widget.responseData,
+              numberOfFamilies: widget.numberOfFamilies,
+            ),
+          ),
+        );
       } else {
         print('Failed to get authentication token.');
       }
@@ -172,7 +175,7 @@ class _PersonneIndicatorPageState extends State<PersonneIndicatorPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const CustomAppBar(
-        title: 'Indicateurs Personne',
+        title: 'Indicateurs Menage',
       ),
       body: Stack(
         children: [
@@ -209,7 +212,7 @@ class _PersonneIndicatorPageState extends State<PersonneIndicatorPage> {
   }
 
   Widget _buildBodyContent() {
-    return _perosnneIndicators.isEmpty
+    return _menageIndicators.isEmpty
         ? Center(
             child: Lottie.asset(
               'assets/animations/loading_indicator.json',
@@ -219,9 +222,9 @@ class _PersonneIndicatorPageState extends State<PersonneIndicatorPage> {
             ),
           )
         : ListView.builder(
-            itemCount: _perosnneIndicators.length,
+            itemCount: _menageIndicators.length,
             itemBuilder: (context, index) {
-              final indicateur = _perosnneIndicators[index];
+              final indicateur = _menageIndicators[index];
               final controller = controllersMap[indicateur.id.toString()];
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -254,45 +257,6 @@ class _PersonneIndicatorPageState extends State<PersonneIndicatorPage> {
         ),
       ),
     );
-  }
-
-  void _showSuccessDialog(BuildContext context, String title, String message) {
-    AwesomeDialog(
-      context: context,
-      dialogType: DialogType.success,
-      animType: AnimType.bottomSlide,
-      title: 'Succès',
-      desc: 'Les personnes ont été ajoutées avec succès.',
-      btnOkText: 'OK',
-      btnOkOnPress: () {
-        if (widget.personneNumber > 1) {
-          // Navigate to the next PersonneForm if more persons remaining
-
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => PersonneForm(
-                famille: widget.famille,
-                personneNumber: widget.personneNumber - 1,
-                families: widget.familles,
-              ),
-            ),
-          );
-        } else {
-          widget.famille.completed = true;
-          // Navigate to ListFamille if all persons added
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ListFamille(
-                families: widget.familles,
-              ),
-            ),
-          );
-        }
-      },
-      dismissOnTouchOutside: false,
-    ).show();
   }
 
   void showSuccessMessage(BuildContext context, String title, String message) {

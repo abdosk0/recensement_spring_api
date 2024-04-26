@@ -3,14 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:recensement_app_spring/models/personne.dart';
-import 'package:recensement_app_spring/pages/personne_indicateur_page.dart';
+import 'package:recensement_app_spring/pages/personne/personne_indicateur_page.dart';
 
-import '../models/famille.dart';
-import '../models/valeur_possible.dart';
-import '../widgets/customAppbar.dart';
-import '../widgets/date_form_field.dart';
-import '../widgets/radio_form_field.dart';
-import '../widgets/text_field_widget.dart';
+import '../../models/famille.dart';
+import '../../models/valeur_possible.dart';
+import '../../widgets/customAppbar.dart';
+import '../../widgets/date_form_field.dart';
+import '../../widgets/radio_form_field.dart';
+import '../../widgets/text_field_widget.dart';
 
 class PersonneForm extends StatefulWidget {
   final Famille famille;

@@ -1,36 +1,42 @@
 import 'dart:convert';
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
-import '../helpers/api_service.dart';
-import '../helpers/authentification_service.dart';
-import '../models/indicateur.dart';
-import '../models/menage.dart';
-import '../models/user.dart';
-import '../widgets/customAppbar.dart';
-import '../widgets/dynamic_indicator.dart';
-import 'famille_form.dart';
+import 'package:recensement_app_spring/models/famille.dart';
+import 'package:recensement_app_spring/models/personne.dart';
+import 'package:recensement_app_spring/pages/personne/personne_form.dart';
+import '../../helpers/api_service.dart';
+import '../../helpers/authentification_service.dart';
+import '../../models/indicateur.dart';
+import '../../models/user.dart';
+import '../../widgets/customAppbar.dart';
+import '../../widgets/dynamic_indicator.dart';
 import 'package:http/http.dart' as http;
 
-class MenageIndicatorPage extends StatefulWidget {
-  final Map<String, dynamic> responseData;
-  final int numberOfFamilies;
-  final Menage menage;
+import '../famille/list_famille.dart';
 
-  const MenageIndicatorPage({
-    Key? key,
-    required this.responseData,
-    required this.numberOfFamilies,
-    required this.menage,
-  }) : super(key: key);
+class PersonneIndicatorPage extends StatefulWidget {
+  final List<Famille> familles;
+  final Personne personne;
+  final int personneNumber;
+  final Famille famille;
+
+  const PersonneIndicatorPage({
+    super.key,
+    required this.familles,
+    required this.personne,
+    required this.personneNumber,
+    required this.famille,
+  });
 
   @override
-  _MenageIndicatorPageState createState() => _MenageIndicatorPageState();
+  _PersonneIndicatorPageState createState() => _PersonneIndicatorPageState();
 }
 
-class _MenageIndicatorPageState extends State<MenageIndicatorPage> {
+class _PersonneIndicatorPageState extends State<PersonneIndicatorPage> {
   final ApiService _apiService = ApiService();
-  late List<Indicateur> _menageIndicators = [];
+  late List<Indicateur> _perosnneIndicators = [];
   bool _showLoading = false;
   final AuthenticationService _authService = AuthenticationService();
   final Map<String, TextEditingController> controllersMap = {};
@@ -39,7 +45,7 @@ class _MenageIndicatorPageState extends State<MenageIndicatorPage> {
   @override
   void initState() {
     super.initState();
-    _fetchMenageIndicators();
+    _fetchPersonneIndicators();
   }
 
   @override
@@ -50,23 +56,23 @@ class _MenageIndicatorPageState extends State<MenageIndicatorPage> {
     super.dispose();
   }
 
-  Future<void> _fetchMenageIndicators() async {
+  Future<void> _fetchPersonneIndicators() async {
     try {
       await Future.delayed(const Duration(seconds: 2));
       final List<Indicateur> indicators = await _apiService.fetchIndicateurs(1);
       setState(() {
-        _menageIndicators = indicators
-            .where((indicateur) => indicateur.objectIndicateur == 'Ménage')
+        _perosnneIndicators = indicators
+            .where((indicateur) => indicateur.objectIndicateur == 'Personne')
             .toList();
 
         // Initialize controllers after fetching indicators
-        for (var indicateur in _menageIndicators) {
+        for (var indicateur in _perosnneIndicators) {
           controllersMap[indicateur.id.toString()] = TextEditingController();
           selectedValuesMap[indicateur.id] = null;
         }
       });
     } catch (e) {
-      print('Error fetching Menage indicators: $e');
+      print('Error fetching Personne indicators: $e');
     }
   }
 
@@ -79,7 +85,7 @@ class _MenageIndicatorPageState extends State<MenageIndicatorPage> {
       if (authToken.isNotEmpty) {
         final User? currentUser = await _authService.fetchCurrentUser();
 
-        for (final indicateur in _menageIndicators) {
+        for (final indicateur in _perosnneIndicators) {
           final controller = controllersMap[indicateur.id.toString()];
           bool? requireSousIndicateur;
           int? selectedId = 0;
@@ -120,11 +126,11 @@ class _MenageIndicatorPageState extends State<MenageIndicatorPage> {
               'date': DateTime.now().toIso8601String(),
               'remarques': null,
               'enregistrePar': currentUser?.toJson(),
-              'personne': null,
+              'personne': widget.personne.toMap(),
               'indicateur': indicateur.toJson(),
               'sousIndicateur': null,
               'resultatValeur': resultatValeur,
-              'menage': widget.menage.toMap(),
+              'menage': null,
             };
 
             final response = await http.post(
@@ -148,16 +154,7 @@ class _MenageIndicatorPageState extends State<MenageIndicatorPage> {
         });
 
         // Show success message after all indicators are submitted
-        showSuccessMessage(context, 'Success', 'Data submitted successfully');
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => FamilleForm(
-              responseData: widget.responseData,
-              numberOfFamilies: widget.numberOfFamilies,
-            ),
-          ),
-        );
+        _showSuccessDialog(context, 'Success', 'Data submitted successfully');
       } else {
         print('Failed to get authentication token.');
       }
@@ -175,7 +172,7 @@ class _MenageIndicatorPageState extends State<MenageIndicatorPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const CustomAppBar(
-        title: 'Indicateurs Menage',
+        title: 'Indicateurs Personne',
       ),
       body: Stack(
         children: [
@@ -212,7 +209,7 @@ class _MenageIndicatorPageState extends State<MenageIndicatorPage> {
   }
 
   Widget _buildBodyContent() {
-    return _menageIndicators.isEmpty
+    return _perosnneIndicators.isEmpty
         ? Center(
             child: Lottie.asset(
               'assets/animations/loading_indicator.json',
@@ -222,9 +219,9 @@ class _MenageIndicatorPageState extends State<MenageIndicatorPage> {
             ),
           )
         : ListView.builder(
-            itemCount: _menageIndicators.length,
+            itemCount: _perosnneIndicators.length,
             itemBuilder: (context, index) {
-              final indicateur = _menageIndicators[index];
+              final indicateur = _perosnneIndicators[index];
               final controller = controllersMap[indicateur.id.toString()];
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -257,6 +254,45 @@ class _MenageIndicatorPageState extends State<MenageIndicatorPage> {
         ),
       ),
     );
+  }
+
+  void _showSuccessDialog(BuildContext context, String title, String message) {
+    AwesomeDialog(
+      context: context,
+      dialogType: DialogType.success,
+      animType: AnimType.bottomSlide,
+      title: 'Succès',
+      desc: 'Les personnes ont été ajoutées avec succès.',
+      btnOkText: 'OK',
+      btnOkOnPress: () {
+        if (widget.personneNumber > 1) {
+          // Navigate to the next PersonneForm if more persons remaining
+
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => PersonneForm(
+                famille: widget.famille,
+                personneNumber: widget.personneNumber - 1,
+                families: widget.familles,
+              ),
+            ),
+          );
+        } else {
+          widget.famille.completed = true;
+          // Navigate to ListFamille if all persons added
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ListFamille(
+                families: widget.familles,
+              ),
+            ),
+          );
+        }
+      },
+      dismissOnTouchOutside: false,
+    ).show();
   }
 
   void showSuccessMessage(BuildContext context, String title, String message) {

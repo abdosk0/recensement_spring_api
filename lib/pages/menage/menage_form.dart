@@ -3,10 +3,10 @@ import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
-import '../models/menage.dart';
-import '../widgets/customAppbar.dart';
-import '../widgets/text_field_widget.dart';
-import '../widgets/ville_dropdown.dart';
+import '../../models/menage.dart';
+import '../../widgets/customAppbar.dart';
+import '../../widgets/text_field_widget.dart';
+import '../../widgets/ville_dropdown.dart';
 import 'menage_indicateur_page.dart';
 
 class MenageForm extends StatefulWidget {

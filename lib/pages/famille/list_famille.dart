@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
 
-import '../models/famille.dart';
-import '../widgets/customAppbar.dart';
-import 'personne_form.dart';
+import '../../models/famille.dart';
+import '../../widgets/customAppbar.dart';
+import '../personne/personne_form.dart';
 
 class ListFamille extends StatelessWidget {
   final List<Famille> families;

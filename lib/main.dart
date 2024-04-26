@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'pages/home_page.dart';
-import 'pages/menage_form.dart';
-import 'pages/menage_list_page.dart';
+import 'pages/menage/menage_form.dart';
+import 'pages/menage/menage_list_page.dart';
 import 'pages/menu.dart';
 import 'pages/splash_screen.dart';
 

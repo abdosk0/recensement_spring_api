@@ -2,9 +2,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:awesome_dialog/awesome_dialog.dart';
-import '../models/famille.dart'; // Import your Famille model here
-import '../widgets/customAppbar.dart';
-import '../widgets/text_field_widget.dart';
+import '../../models/famille.dart'; // Import your Famille model here
+import '../../widgets/customAppbar.dart';
+import '../../widgets/text_field_widget.dart';
 import 'list_famille.dart';
 
 class FamilleForm extends StatefulWidget {
